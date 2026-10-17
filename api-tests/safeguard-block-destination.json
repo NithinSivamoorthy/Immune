@@ -1,0 +1,10 @@
+{
+  "id": "sg_block_refund_destination",
+  "name": "Block refund destination changes",
+  "category": "financial_fraud",
+  "actionType": "change_refund_destination",
+  "response": "BLOCK",
+  "riskLevel": "CRITICAL",
+  "reason": "Changing where a refund is sent is blocked after a fraud incident.",
+  "learnedFromIncident": "inc_demo_1"
+}

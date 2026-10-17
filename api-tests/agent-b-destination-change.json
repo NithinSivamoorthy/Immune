@@ -1,0 +1,8 @@
+{
+  "id": "act_dest_change_b",
+  "agentId": "agent-b",
+  "agentName": "Agent B",
+  "actionType": "change_refund_destination",
+  "customerId": "cust_77",
+  "reason": "Urgent request, customer says there is no time to verify"
+}

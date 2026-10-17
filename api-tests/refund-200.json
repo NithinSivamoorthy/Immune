@@ -1,0 +1,9 @@
+{
+  "id": "act_refund_200",
+  "agentId": "agent-a",
+  "agentName": "Agent A",
+  "actionType": "refund",
+  "amount": 200,
+  "customerId": "cust_42",
+  "reason": "Package arrived late"
+}
