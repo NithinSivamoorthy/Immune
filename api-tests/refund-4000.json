@@ -1,0 +1,9 @@
+{
+  "id": "act_refund_4000",
+  "agentId": "agent-a",
+  "agentName": "Agent A",
+  "actionType": "refund",
+  "amount": 4000,
+  "customerId": "cust_42",
+  "reason": "Customer demanded a full refund"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "inc_demo_1",
+  "description": "Agent A changed a refund destination to an unrelated bank account and sent money.",
+  "action": {
+    "id": "act_dest_change_a",
+    "agentId": "agent-a",
+    "agentName": "Agent A",
+    "actionType": "change_refund_destination",
+    "customerId": "cust_42",
+    "reason": "Customer asked to send the refund to a different account"
+  }
+}
