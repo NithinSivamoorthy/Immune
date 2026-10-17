@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import type { Safeguard } from "@/shared/types";
+import { toFrontendSafeguard } from "@/lib/immune/frontend";
 import { errorResponse, readJson } from "@/lib/immune/http";
 import { addSafeguard, listSafeguards } from "@/lib/immune/store";
 import { validateCreateSafeguard } from "@/lib/immune/validate";
@@ -7,12 +8,16 @@ import { validateCreateSafeguard } from "@/lib/immune/validate";
 /**
  * GET /api/safeguards
  * Returns: Safeguard[] (200).
+ * GET /api/safeguards?format=frontend returns FrontendSafeguard[] instead
+ * (the shape Nithin's dashboard uses: title, detail, outcome, active, ...).
  */
-export async function GET() {
+export async function GET(request: Request) {
   // cacheComponents is on: without this, Next.js could prerender this GET at
   // build time and serve a frozen list. connection() forces request time.
   await connection();
-  return Response.json(listSafeguards());
+  const safeguards = listSafeguards();
+  const format = new URL(request.url).searchParams.get("format");
+  return Response.json(format === "frontend" ? safeguards.map(toFrontendSafeguard) : safeguards);
 }
 
 /**

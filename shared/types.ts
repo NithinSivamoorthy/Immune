@@ -67,6 +67,11 @@ export type Safeguard = {
   riskLevel?: RiskLevel;
   /** Id of the Incident this safeguard was learned from, if any. */
   learnedFromIncident?: string;
+  /**
+   * Matching policy id in Varad's Fire Drill engine (security/policies.ts),
+   * e.g. "DATA_PRIVACY", so the UI can show both layers together.
+   */
+  policyId?: string;
   /** ISO 8601 timestamp, set by the server. */
   createdAt: string;
 };
@@ -96,6 +101,72 @@ export type CreateSafeguardRequest = Omit<Safeguard, "id" | "createdAt"> & {
 /** POST /api/incidents — server fills in id (if omitted) and createdAt. */
 export type CreateIncidentRequest = Omit<Incident, "id" | "createdAt"> & {
   id?: string;
+};
+
+/** One entry in the decision log. GET /api/immune/decisions returns these, newest first. */
+export type DecisionLogEntry = ImmuneDecision & {
+  action: AgentAction;
+  /** ISO 8601 timestamp, set by the server. */
+  checkedAt: string;
+};
+
+/** POST /api/immune/reset — response. */
+export type ResetResponse = {
+  safeguards: number;
+  incidents: number;
+  decisions: number;
+};
+
+/* ------------------------------------------------------------------ */
+/* Frontend contract (docs/IMMUNE_FRONTEND_INTEGRATION.md, Nithin)     */
+/* ------------------------------------------------------------------ */
+
+/** A safeguard in the shape Nithin's dashboard uses. */
+export type FrontendSafeguard = {
+  id: string;
+  title: string;
+  detail: string;
+  action?: string;
+  condition?: { field: "amount"; operator: "greater_than"; value: number };
+  outcome: SafeguardResponse;
+  active: boolean;
+};
+
+/** POST /api/decisions/evaluate — request. */
+export type EvaluateRequest = {
+  agentId: string;
+  action: string;
+  amount?: number;
+  currency?: string;
+};
+
+/** POST /api/decisions/evaluate — response. `matchedSafeguardId` absent on ALLOW. */
+export type EvaluateResponse = {
+  decision: Decision;
+  reason: string;
+  matchedSafeguardId?: string;
+};
+
+/** POST /api/incidents/learn — request. */
+export type LearnRequest = {
+  incident: {
+    agentId: string;
+    action: string;
+    amount?: number;
+    currency?: string;
+    summary: string;
+  };
+  /**
+   * Optional rule to store instead of the built-in one, e.g. produced by the
+   * LLM. Same shape as FrontendSafeguard, `id` and `active` optional.
+   */
+  safeguard?: Omit<FrontendSafeguard, "id" | "active"> & { id?: string; active?: boolean };
+};
+
+/** POST /api/incidents/learn — response. */
+export type LearnResponse = {
+  safeguard: FrontendSafeguard;
+  incidentId: string;
 };
 
 /** Returned with a 4xx/5xx status when a request fails. */

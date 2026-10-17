@@ -1,0 +1,9 @@
+{
+  "incident": {
+    "agentId": "customer-support",
+    "action": "refund",
+    "amount": 4200,
+    "currency": "USD",
+    "summary": "Approved without required human review"
+  }
+}

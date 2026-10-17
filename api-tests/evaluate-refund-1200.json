@@ -1,0 +1,6 @@
+{
+  "agentId": "sales-assistant",
+  "action": "refund",
+  "amount": 1200,
+  "currency": "USD"
+}

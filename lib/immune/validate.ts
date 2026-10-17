@@ -2,6 +2,8 @@ import type {
   AgentAction,
   CreateIncidentRequest,
   CreateSafeguardRequest,
+  EvaluateRequest,
+  LearnRequest,
   RiskLevel,
 } from "@/shared/types";
 
@@ -80,7 +82,7 @@ export function validateCreateSafeguard(
   if (body.response !== "BLOCK" && body.response !== "REVIEW") {
     return { ok: false, error: `"response" must be "BLOCK" or "REVIEW".` };
   }
-  for (const key of ["id", "actionType", "learnedFromIncident"]) {
+  for (const key of ["id", "actionType", "learnedFromIncident", "policyId"]) {
     if (!isOptional(body[key], isNonEmptyString)) {
       return { ok: false, error: `"${key}" must be a non-empty string.` };
     }
@@ -107,6 +109,7 @@ export function validateCreateSafeguard(
       reason: body.reason as string,
       riskLevel: body.riskLevel as RiskLevel | undefined,
       learnedFromIncident: body.learnedFromIncident as string | undefined,
+      policyId: body.policyId as string | undefined,
     },
   };
 }
@@ -131,6 +134,115 @@ export function validateCreateIncident(
       id: body.id as string | undefined,
       description: body.description as string,
       action: action.value,
+    },
+  };
+}
+
+/* Frontend contract (docs/IMMUNE_FRONTEND_INTEGRATION.md) -------------- */
+
+export function validateEvaluateRequest(body: unknown): Validated<EvaluateRequest> {
+  if (!isObject(body)) return { ok: false, error: "Body must be a JSON object." };
+
+  for (const key of ["agentId", "action"]) {
+    if (!isNonEmptyString(body[key])) {
+      return { ok: false, error: `"${key}" is required and must be a non-empty string.` };
+    }
+  }
+  if (!isOptional(body.amount, isFiniteNumber)) {
+    return { ok: false, error: `"amount" must be a number.` };
+  }
+  if (!isOptional(body.currency, isNonEmptyString)) {
+    return { ok: false, error: `"currency" must be a non-empty string.` };
+  }
+
+  return {
+    ok: true,
+    value: {
+      agentId: body.agentId as string,
+      action: body.action as string,
+      amount: body.amount as number | undefined,
+      currency: body.currency as string | undefined,
+    },
+  };
+}
+
+export function validateLearnRequest(body: unknown): Validated<LearnRequest> {
+  if (!isObject(body)) return { ok: false, error: "Body must be a JSON object." };
+
+  const incident = body.incident;
+  if (!isObject(incident)) {
+    return { ok: false, error: `"incident" is required and must be an object.` };
+  }
+  for (const key of ["agentId", "action", "summary"]) {
+    if (!isNonEmptyString(incident[key])) {
+      return { ok: false, error: `"incident.${key}" is required and must be a non-empty string.` };
+    }
+  }
+  if (!isOptional(incident.amount, isFiniteNumber)) {
+    return { ok: false, error: `"incident.amount" must be a number.` };
+  }
+  if (!isOptional(incident.currency, isNonEmptyString)) {
+    return { ok: false, error: `"incident.currency" must be a non-empty string.` };
+  }
+
+  let safeguard: LearnRequest["safeguard"];
+  if (body.safeguard !== undefined) {
+    const s = body.safeguard;
+    if (!isObject(s)) return { ok: false, error: `"safeguard" must be an object.` };
+    for (const key of ["title", "detail"]) {
+      if (!isNonEmptyString(s[key])) {
+        return { ok: false, error: `"safeguard.${key}" is required and must be a non-empty string.` };
+      }
+    }
+    if (s.outcome !== "BLOCK" && s.outcome !== "REVIEW") {
+      return { ok: false, error: `"safeguard.outcome" must be "BLOCK" or "REVIEW".` };
+    }
+    for (const key of ["id", "action"]) {
+      if (!isOptional(s[key], isNonEmptyString)) {
+        return { ok: false, error: `"safeguard.${key}" must be a non-empty string.` };
+      }
+    }
+    if (!isOptional(s.active, (v): v is boolean => typeof v === "boolean")) {
+      return { ok: false, error: `"safeguard.active" must be true or false.` };
+    }
+    let condition: NonNullable<LearnRequest["safeguard"]>["condition"];
+    if (s.condition !== undefined) {
+      const c = s.condition;
+      if (
+        !isObject(c) ||
+        c.field !== "amount" ||
+        c.operator !== "greater_than" ||
+        !isFiniteNumber(c.value)
+      ) {
+        return {
+          ok: false,
+          error: `"safeguard.condition" must be { "field": "amount", "operator": "greater_than", "value": <number> }.`,
+        };
+      }
+      condition = { field: "amount", operator: "greater_than", value: c.value };
+    }
+    safeguard = {
+      id: s.id as string | undefined,
+      title: s.title as string,
+      detail: s.detail as string,
+      action: s.action as string | undefined,
+      condition,
+      outcome: s.outcome,
+      active: s.active as boolean | undefined,
+    };
+  }
+
+  return {
+    ok: true,
+    value: {
+      incident: {
+        agentId: incident.agentId as string,
+        action: incident.action as string,
+        amount: incident.amount as number | undefined,
+        currency: incident.currency as string | undefined,
+        summary: incident.summary as string,
+      },
+      safeguard,
     },
   };
 }
