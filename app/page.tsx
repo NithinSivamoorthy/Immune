@@ -1,7 +1,11 @@
-import ImmuneDashboard from "@/components/immune-dashboard";
+import PublicSite from "@/components/marketing/site";
+import { Space_Grotesk, IBM_Plex_Sans_Condensed } from "next/font/google";
+
+const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-immune-display", display: "swap" });
+const technical = IBM_Plex_Sans_Condensed({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-immune-technical", display: "swap" });
 
 export default function Home() {
-  return <ImmuneDashboard />;
+  return <PublicSite className={`${display.variable} ${technical.variable}`} />;
 }
 
 function SummaryCard({

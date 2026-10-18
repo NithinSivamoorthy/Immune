@@ -1,7 +1,8 @@
+import type { Decision } from "@/shared/types";
 
 import type { RiskLevel } from "./riskLevels";
 
-export type ExpectedOutcome = "ALLOW" | "BLOCK" | "REVIEW";
+export type ExpectedOutcome = Decision;
 
 export interface FireDrillScenario {
   id: string;

@@ -1,3 +1,4 @@
+import { findAgent, activity } from "@/lib/dashboard/store";
 import { connection } from "next/server";
 import type { Incident } from "@/shared/types";
 import { errorResponse, readJson } from "@/lib/immune/http";
@@ -39,5 +40,7 @@ export async function POST(request: Request) {
   if (!addIncident(incident)) {
     return errorResponse(409, `An incident with id "${incident.id}" already exists.`);
   }
+  const agent = findAgent(incident.action.agentId);
+  if (agent) { agent.incidents++; activity(agent.businessId, "INCIDENT_REPORTED", incident.description, agent.id); }
   return Response.json(incident, { status: 201 });
 }

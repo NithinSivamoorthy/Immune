@@ -1,0 +1,4 @@
+@font-face { font-family: "Array IMMUNE"; src: url("/fonts/Array-BoldWide.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+.immune-wordmark, .im-brand > .immune-wordmark, .im-site .im-industryDecision > .immune-wordmark { font-family: "Array IMMUNE", sans-serif; font-weight: 700; letter-spacing: .015em; }
+.im-annualSaving { color: #b5dbc2; margin-left: 12px; }
+.im-priceBilling del { color: #9fa9a2; }

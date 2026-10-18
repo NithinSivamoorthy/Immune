@@ -1,3 +1,4 @@
+import { findAgent, recordCheck } from "@/lib/dashboard/store";
 import type { CheckActionResponse } from "@/shared/types";
 import { evaluateAction } from "@/lib/immune/evaluate";
 import { errorResponse, readJson } from "@/lib/immune/http";
@@ -16,6 +17,9 @@ export async function POST(request: Request) {
   const action = validateAgentAction(parsed.body);
   if (!action.ok) return errorResponse(400, action.error);
 
+  const agent = findAgent(action.value.agentId);
+  if (agent && !agent.immuneEnabled) return errorResponse(409, "IMMUNE is disabled for this demo agent. Enable it before checking actions.");
   const decision: CheckActionResponse = evaluateAction(action.value, listSafeguards());
+  recordCheck(action.value, decision);
   return Response.json(decision);
 }

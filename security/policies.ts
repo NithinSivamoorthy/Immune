@@ -1,7 +1,8 @@
+import type { Decision } from "@/shared/types";
 import type { FireDrillScenario } from "./scenarios";
 
 export type SimulationMode = "PROTECTED" | "VULNERABLE";
-export type AgentOutcome = "ALLOW" | "BLOCK" | "REVIEW";
+export type AgentOutcome = Decision;
 
 export interface PolicyEvaluation {
   outcome: AgentOutcome;

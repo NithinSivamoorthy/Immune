@@ -5,11 +5,8 @@
  * Defines how serious an AI agent mistake is.
  */
 
-export type RiskLevel =
-  | "LOW"
-  | "MEDIUM"
-  | "HIGH"
-  | "CRITICAL";
+import type { RiskLevel } from "@/shared/types";
+export type { RiskLevel } from "@/shared/types";
 
 export const RISK_LEVELS: Record<RiskLevel, string> = {
   LOW: "Minor mistake with little consequence.",

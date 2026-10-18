@@ -1,3 +1,5 @@
+import { assess } from "@/lib/dashboard/fire-drill";
+import { hasBusiness, dashboardStore } from "@/lib/dashboard/store";
 import { runFireDrill } from "../../../security/engine";
 import type { SimulationMode } from "../../../security/policies";
 
@@ -22,6 +24,13 @@ export async function POST(request: Request): Promise<Response> {
     return badRequest("Request body must be a JSON object with a valid mode.");
   }
 
+  const businessId = (body as { businessId?: unknown }).businessId;
+  if (businessId !== undefined) {
+    if (typeof businessId !== "string" || !hasBusiness(businessId)) return badRequest("Valid businessId required.");
+    try { return Response.json(await assess(businessId, request.url)); }
+    catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Assessment failed." }, { status: 409 }); }
+  }
+  // Legacy baseline simulation only; the dashboard always supplies businessId.
   const mode = (body as { mode?: unknown }).mode;
   if (!isSimulationMode(mode)) {
     return badRequest('Mode must be either "PROTECTED" or "VULNERABLE".');
@@ -43,4 +52,10 @@ export async function POST(request: Request): Promise<Response> {
       { status: 500 },
     );
   }
+}
+
+export async function GET(request: Request) {
+  const businessId = new URL(request.url).searchParams.get("businessId");
+  if (!businessId || !hasBusiness(businessId)) return badRequest("Valid businessId required.");
+  return Response.json(dashboardStore().runs.filter(r => r.businessId === businessId));
 }

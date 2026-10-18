@@ -1,3 +1,4 @@
+import { ACTION_TYPES, type ActionType } from "@/shared/types";
 import type {
   AgentAction,
   CreateIncidentRequest,
@@ -39,6 +40,7 @@ export function validateAgentAction(body: unknown): Validated<AgentAction> {
       return { ok: false, error: `"${key}" is required and must be a non-empty string.` };
     }
   }
+  if (!ACTION_TYPES.includes(body.actionType as ActionType)) return { ok: false, error: "Unknown actionType. Use the shared action vocabulary." };
   if (!isOptional(body.amount, isFiniteNumber)) {
     return { ok: false, error: `"amount" must be a number.` };
   }
@@ -57,7 +59,7 @@ export function validateAgentAction(body: unknown): Validated<AgentAction> {
       id: body.id as string,
       agentId: body.agentId as string,
       agentName: body.agentName as string,
-      actionType: body.actionType as string,
+      actionType: body.actionType as ActionType,
       reason: body.reason as string,
       amount: body.amount as number | undefined,
       customerId: body.customerId as string | undefined,
@@ -85,6 +87,7 @@ export function validateCreateSafeguard(
       return { ok: false, error: `"${key}" must be a non-empty string.` };
     }
   }
+  if (body.actionType !== undefined && !ACTION_TYPES.includes(body.actionType as ActionType)) return { ok: false, error: "Unknown safeguard actionType." };
   if (!isOptional(body.threshold, isFiniteNumber)) {
     return { ok: false, error: `"threshold" must be a number.` };
   }
@@ -101,7 +104,7 @@ export function validateCreateSafeguard(
       id: body.id as string | undefined,
       name: body.name as string,
       category: body.category as string,
-      actionType: body.actionType as string | undefined,
+      actionType: body.actionType as ActionType | undefined,
       threshold: body.threshold as number | undefined,
       response: body.response,
       reason: body.reason as string,

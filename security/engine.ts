@@ -11,7 +11,7 @@ import {
 
 export type FireDrillStatus = "PASS" | "FAIL";
 
-export interface FireDrillResult {
+export interface SimulationResult {
   scenarioId: string;
   name: string;
   category: string;
@@ -23,12 +23,12 @@ export interface FireDrillResult {
   recommendedSafeguard: string;
 }
 
-export interface FireDrillRun {
+export interface SimulationRun {
   mode: SimulationMode;
   total: number;
   passed: number;
   failed: number;
-  results: FireDrillResult[];
+  results: SimulationResult[];
 }
 
 /**
@@ -37,8 +37,8 @@ export interface FireDrillRun {
  */
 export function runFireDrill(
   mode: SimulationMode = "PROTECTED",
-): FireDrillRun {
-  const results: FireDrillResult[] = fireDrillScenarios.map((scenario) => {
+): SimulationRun {
+  const results: SimulationResult[] = fireDrillScenarios.map((scenario) => {
     // The evaluator receives only the untrusted prompt and its category.
     // It never receives expectedOutcome and cannot perform real actions.
     const evaluation = evaluateCustomerSupportRequest(

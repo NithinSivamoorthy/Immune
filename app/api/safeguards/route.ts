@@ -1,3 +1,5 @@
+import { findAgent, activity } from "@/lib/dashboard/store";
+import { getIncident } from "@/lib/immune/store";
 import { connection } from "next/server";
 import type { Safeguard } from "@/shared/types";
 import { errorResponse, readJson } from "@/lib/immune/http";
@@ -36,5 +38,8 @@ export async function POST(request: Request) {
   if (!addSafeguard(safeguard)) {
     return errorResponse(409, `A safeguard with id "${safeguard.id}" already exists.`);
   }
+  const incident = safeguard.learnedFromIncident ? getIncident(safeguard.learnedFromIncident) : undefined;
+  const agent = incident ? findAgent(incident.action.agentId) : undefined;
+  if (agent) activity(agent.businessId, "SAFEGUARD_LEARNED", safeguard.name, agent.id);
   return Response.json(safeguard, { status: 201 });
 }

@@ -6,7 +6,7 @@
  *
  *   import type { AgentAction, ImmuneDecision } from "@/shared/types";
  *
- * Types only: no runtime code lives in this file.
+ * Includes the canonical action vocabulary used by runtime validators.
  */
 
 /** The three outcomes IMMUNE can return for a proposed action. */
@@ -23,7 +23,7 @@ export type AgentAction = {
   agentId: string;
   agentName: string;
   /** e.g. "refund", "delete_account", "send_email" */
-  actionType: string;
+  actionType: ActionType;
   /** Money amount in dollars, when the action involves money. */
   amount?: number;
   customerId?: string;
@@ -59,7 +59,7 @@ export type Safeguard = {
   name: string;
   /** Free-form grouping label, e.g. "financial_fraud". Not used for matching. */
   category: string;
-  actionType?: string;
+  actionType?: ActionType;
   threshold?: number;
   response: SafeguardResponse;
   reason: string;
@@ -102,3 +102,14 @@ export type CreateIncidentRequest = Omit<Incident, "id" | "createdAt"> & {
 export type ApiError = {
   error: string;
 };
+
+/** Canonical structured operations; prompts are never enforcement inputs. */
+export const ACTION_TYPES = ["refund", "change_refund_destination", "change_email", "share_customer_data", "override_policy", "modify_account", "repeat_refund", "execute_unverified_instruction", "read_policy"] as const;
+export type ActionType = typeof ACTION_TYPES[number];
+export type Business = { id: string; name: string; industry: string };
+export type Agent = { id: string; businessId: string; name: string; role: string; status: "ACTIVE"; immuneEnabled: boolean; actionsChecked: number; blockedActions: number; reviewActions: number; incidents: number; lastActionAt?: string };
+export type ActivityEvent = { id: string; businessId: string; agentId?: string; type: "ACTION_ALLOWED" | "ACTION_REVIEW" | "ACTION_BLOCKED" | "INCIDENT_REPORTED" | "SAFEGUARD_LEARNED" | "FIRE_DRILL_STARTED" | "FIRE_DRILL_WEAKNESS_FOUND" | "FIRE_DRILL_SAFEGUARD_CREATED" | "FIRE_DRILL_RETEST_PASSED"; message: string; createdAt: string };
+export type FireDrillResult = { id: string; runId: string; scenarioId: string; name: string; agentId: string; action: AgentAction; expectedOutcome: Decision; actualDecision: Decision; passed: boolean; weakness: boolean; riskLevel: RiskLevel; finding: string; incidentId?: string; safeguardId?: string; retestDecision?: Decision; retestPassed?: boolean; error?: string; selected: boolean; learningStatus: "NOT_SELECTED" | "PENDING" | "LEARNING" | "COMPLETE" | "ERROR" };
+export type FireDrillRun = { id: string; businessId: string; startedAt: string; completedAt?: string; status: "ASSESSING" | "ASSESSED" | "LEARNING" | "COMPLETE" | "ERROR"; scenarioCount: number; passedCount: number; failedCount: number; safeguardsCreated: number; learningLimit: number; results: FireDrillResult[]; error?: string };
+export type WorkspaceSettings = { nextFireDrillAt: string; learningLimit: number };
+export type DashboardSnapshot = { businesses: Business[]; agents: Agent[]; activity: ActivityEvent[]; incidents: Incident[]; safeguards: Safeguard[]; runs: FireDrillRun[]; settings: WorkspaceSettings; metrics: Record<string, number> };

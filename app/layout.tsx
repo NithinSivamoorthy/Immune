@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./wordmark.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IMMUNE | AI Agent Safety",
-  description: "Self-learning safety for AI agents.",
+  title: "IMMUNE — The immune system for your AI workforce",
+  description: "AI mistakes are inevitable. Repeating them isn't. Meet the control layer that turns agent failures into shared safeguards.",
+  icons: { icon: "/immune-symbol.svg", shortcut: "/immune-symbol.svg" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
