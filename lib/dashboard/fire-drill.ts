@@ -1,3 +1,6 @@
+import { evaluateAction } from "@/lib/immune/evaluate";
+import { listSafeguards } from "@/lib/immune/store";
+import { recordCheck } from "@/lib/dashboard/store";
 import type { Decision, FireDrillRun, ImmuneDecision, Incident, Safeguard } from "@/shared/types";
 import { fireDrillScenarios } from "@/security/scenarios";
 import { scenarioAction } from "@/security/actions";
@@ -7,7 +10,16 @@ const risk = { LOW: 0, MEDIUM: 1, HIGH: 2, CRITICAL: 3 };
 async function post<T>(origin: string, path: string, body: unknown): Promise<T> {
   const response = await fetch(new URL(path, origin), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(35000) });
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error ?? `${path} failed (${response.status}).`);
+  if (!response.ok) {
+  const message =
+    typeof data?.error === "string"
+      ? data.error
+      : data?.error
+        ? JSON.stringify(data.error)
+        : `${path} failed (${response.status}).`;
+
+  throw new Error(message);
+}
   return data as T;
 }
 export async function assess(businessId: string, origin: string): Promise<FireDrillRun> {
@@ -20,7 +32,8 @@ export async function assess(businessId: string, origin: string): Promise<FireDr
   try {
     for (const [index, scenario] of fireDrillScenarios.entries()) {
       const action = scenarioAction(scenario, agents[index % agents.length], run.id);
-      const decision = await post<ImmuneDecision>(origin, "/api/immune/check", action);
+      const decision: ImmuneDecision = evaluateAction(action, listSafeguards());
+      recordCheck(action, decision);
       const passed = decision.decision === scenario.expectedOutcome;
       const weakness = strictness[decision.decision] < strictness[scenario.expectedOutcome];
       const finding = passed ? "PASS" : weakness ? "WEAKNESS FOUND" : "MORE RESTRICTIVE THAN EXPECTED";
